@@ -17,7 +17,7 @@ function upgradePg() {
         alert("Needs More Points.");
         return;
     }
-    m_b = Math.floor(p3)
+    m_b = Math.floor(p3);
     p3 -= m_b;
     pg3 += m_b;
     saveData();
