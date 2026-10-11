@@ -13,10 +13,6 @@ setInterval(function() {
     pgDisplay.textContent = pg3;
 }, 33);
 function upgradePg() {
-    if (p3 < 1) {
-        alert("Needs More Points.");
-        return;
-    }
     m_b = Math.floor(p3);
     p3 -= m_b;
     pg3 += m_b;
