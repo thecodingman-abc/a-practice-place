@@ -4,5 +4,5 @@ resultDisplay.textContent = p;
 function increaseAndSave() {
     p++;
     resultDisplay.textContent = p;
-    localStorage.setItem('p', p);
+    localStorage.setItem('p2', p);
 }
