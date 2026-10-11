@@ -1,5 +1,5 @@
-let p = parseFloat(localStorage.getItem('p'));
-let pg = parseFloat(localStorage.getItem('pg'));
+let p = parseFloat(localStorage.getItem('p3'));
+let pg = parseFloat(localStorage.getItem('pg3'));
 if (isNaN(p)) p = 1.0;
 if (isNaN(pg)) pg = 0.0;
 const pDisplay = document.getElementById('p-display');
@@ -23,6 +23,6 @@ function upgradePg() {
     saveData();
 }
 function saveData() {
-    localStorage.setItem('p', p);
-    localStorage.setItem('pg', pg);
+    localStorage.setItem('p3', p);
+    localStorage.setItem('pg3', pg);
 }
