@@ -3,6 +3,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Antimatter Dimensions - Hyper Accelerated</title>
+    <!-- HTML 로딩 후 JS가 안전하게 실행되도록 defer 적용 -->
     <script src="4.js" defer></script>
     <style>
         body {
@@ -44,11 +45,11 @@
         .buy-btn:hover:not(:disabled) { background-color: #333; border-color: #666; }
         .buy-btn:disabled { color: #555; border-color: #222; background-color: #151515; cursor: not-allowed; }
 
-        /* 자동구매기 섹션 스타일 */
-        .autobuyer-section {
+        /* 세이브 및 자동구매기 통합 하단 섹션 */
+        .system-section {
             background-color: #181818; border: 1px solid #333; padding: 15px; margin-top: 20px; border-radius: 4px;
         }
-        .autobuyer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .autobuyer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; margin-bottom: 20px; }
         .autobuyer-card {
             background-color: #222; border: 1px solid #444; padding: 10px; border-radius: 3px;
             display: flex; flex-direction: column; justify-content: space-between; align-items: center;
@@ -63,6 +64,21 @@
             margin-top: 8px; padding: 4px 8px; font-size: 11px; cursor: pointer;
             background-color: #333; color: #fff; border: 1px solid #555; font-family: inherit;
         }
+
+        /* 세이브 입출력 스타일 */
+        .save-container {
+            border-top: 1px solid #333; padding-top: 15px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .save-textarea {
+            width: 100%; height: 60px; background-color: #111; color: #00ffcc; border: 1px solid #444;
+            font-family: monospace; font-size: 11px; padding: 5px; box-sizing: border-box; resize: none;
+        }
+        .save-btn-group { display: flex; gap: 10px; }
+        .action-btn {
+            background-color: #252525; color: #fff; border: 1px solid #555; padding: 6px 12px;
+            cursor: pointer; font-family: inherit; font-size: 12px;
+        }
+        .action-btn:hover { background-color: #353535; border-color: #777; }
 
         #infinity-screen {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -150,19 +166,11 @@
             </tr>
         </table>
 
-        <!-- 자동 구매기 관리 센터 -->
-        <div class="autobuyer-section">
+        <!-- 시스템 제어 센터 (자동구매기 및 세이브 관리) -->
+        <div class="system-section">
             <h3>자동 구매기 제어실 (Autobuyers)</h3>
-            <div class="autobuyer-grid" id="autobuyer-zone">
-                <!-- JavaScript를 통해 동적 생성 및 해금 처리 -->
-            </div>
-        </div>
-    </div>
+            <div class="autobuyer-grid" id="autobuyer-zone"></div>
 
-    <div id="infinity-screen">
-        <h1>무한에 도달했습니다!</h1>
-        <p>반물질이 1.79e308을 돌파해 무한의 장벽을 부쉈습니다.</p>
-        <button onclick="resetToInfinity()">빅뱅 발생시키기 (리셋)</button>
-    </div>
-</body>
-</html>
+            <h3>백업 및 세이브 파일 관리 (Double Base64)</h3>
+            <div class="save-container">
+                <textarea id="save-data-box" class="save-textarea" placeholder="여기에 세이브 코드를 붙여넣거나 내보내기 하세요."></textarea>
