@@ -2,9 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Antimatter Dimensions - Hyper Accelerated</title>
-    <!-- HTML 로딩 후 JS가 안전하게 실행되도록 defer 적용 -->
-    <script src="4.js" defer></script>
+    <title>Antimatter Dimensions - Hyper Accelerated Fixed</title>
     <style>
         body {
             background-color: #121212; color: #e0e0e0;
@@ -33,7 +31,7 @@
         
         .dimension-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
         .dimension-row { height: 45px; border-bottom: 1px solid #222; }
-        .dimension-row.locked { display: none; }
+        .dimension-row.locked-row { opacity: 0.4; }
         .dim-name { font-size: 14px; width: 22%; font-weight: bold; }
         .dim-multiplier { font-size: 12px; color: #00ffcc; width: 13%; }
         .dim-amount { font-size: 14px; width: 30%; }
@@ -45,7 +43,6 @@
         .buy-btn:hover:not(:disabled) { background-color: #333; border-color: #666; }
         .buy-btn:disabled { color: #555; border-color: #222; background-color: #151515; cursor: not-allowed; }
 
-        /* 세이브 및 자동구매기 통합 하단 섹션 */
         .system-section {
             background-color: #181818; border: 1px solid #333; padding: 15px; margin-top: 20px; border-radius: 4px;
         }
@@ -65,7 +62,6 @@
             background-color: #333; color: #fff; border: 1px solid #555; font-family: inherit;
         }
 
-        /* 세이브 입출력 스타일 */
         .save-container {
             border-top: 1px solid #333; padding-top: 15px; display: flex; flex-direction: column; gap: 10px;
         }
@@ -114,7 +110,6 @@
             <button id="tick-btn" class="buy-btn" style="width: 250px;" onclick="buyTickspeed()">비용: 10</button>
         </div>
 
-        <!-- 1~8 차원 상점 -->
         <table class="dimension-table">
             <tr id="row-dim1" class="dimension-row">
                 <td class="dim-name">제 1 반물질 차원</td>
@@ -140,25 +135,25 @@
                 <td class="dim-amount"><span id="dim4-amount">0</span> (<span id="dim4-bought">0</span>)</td>
                 <td><button id="dim4-btn" class="buy-btn" onclick="buyDimension(4)">비용: 1e6</button></td>
             </tr>
-            <tr id="row-dim5" class="dimension-row locked">
+            <tr id="row-dim5" class="dimension-row">
                 <td class="dim-name">제 5 반물질 차원</td>
                 <td class="dim-multiplier">x<span id="dim5-mult">1.0</span></td>
                 <td class="dim-amount"><span id="dim5-amount">0</span> (<span id="dim5-bought">0</span>)</td>
                 <td><button id="dim5-btn" class="buy-btn" onclick="buyDimension(5)">비용: 1e9</button></td>
             </tr>
-            <tr id="row-dim6" class="dimension-row locked">
+            <tr id="row-dim6" class="dimension-row">
                 <td class="dim-name">제 6 반물질 차원</td>
                 <td class="dim-multiplier">x<span id="dim6-mult">1.0</span></td>
                 <td class="dim-amount"><span id="dim6-amount">0</span> (<span id="dim6-bought">0</span>)</td>
                 <td><button id="dim6-btn" class="buy-btn" onclick="buyDimension(6)">비용: 1e13</button></td>
             </tr>
-            <tr id="row-dim7" class="dimension-row locked">
+            <tr id="row-dim7" class="dimension-row">
                 <td class="dim-name">제 7 반물질 차원</td>
                 <td class="dim-multiplier">x<span id="dim7-mult">1.0</span></td>
                 <td class="dim-amount"><span id="dim7-amount">0</span> (<span id="dim7-bought">0</span>)</td>
                 <td><button id="dim7-btn" class="buy-btn" onclick="buyDimension(7)">비용: 1e18</button></td>
             </tr>
-            <tr id="row-dim8" class="dimension-row locked">
+            <tr id="row-dim8" class="dimension-row">
                 <td class="dim-name">제 8 반물질 차원</td>
                 <td class="dim-multiplier">x<span id="dim8-mult">1.0</span></td>
                 <td class="dim-amount"><span id="dim8-amount">0</span> (<span id="dim8-bought">0</span>)</td>
@@ -166,7 +161,6 @@
             </tr>
         </table>
 
-        <!-- 시스템 제어 센터 (자동구매기 및 세이브 관리) -->
         <div class="system-section">
             <h3>자동 구매기 제어실 (Autobuyers)</h3>
             <div class="autobuyer-grid" id="autobuyer-zone"></div>
@@ -174,3 +168,385 @@
             <h3>백업 및 세이브 파일 관리 (Double Base64)</h3>
             <div class="save-container">
                 <textarea id="save-data-box" class="save-textarea" placeholder="여기에 세이브 코드를 붙여넣거나 내보내기 하세요."></textarea>
+                <div class="save-btn-group">
+                    <button class="action-btn" onclick="exportSaveText()">세이브 코드 꺼내기 (Export)</button>
+                    <button class="action-btn" onclick="importSaveText()">세이브 코드 넣기 (Import)</button>
+    <script>
+        const INFINITY = 1.7976931348623157e308;
+        const BASE_COSTS = { 1: 10, 2: 100, 3: 10000, 4: 1000000, 5: 1e9, 6: 1e13, 7: 1e18, 8: 1e24 };
+        const COST_MULT_PER_10 = { 1: 1000, 2: 10000, 3: 100000, 4: 1000000, 5: 1e8, 6: 1e10, 7: 1e12, 8: 1e15 };
+
+        let gameState = {};
+
+        const AUTOBUYER_DEFS = {
+            1: { name: "1차원 자동화", cost: 1e40 },
+            2: { name: "2차원 자동화", cost: 1e50 },
+            3: { name: "3차원 자동화", cost: 1e60 },
+            4: { name: "4차원 자동화", cost: 1e70 },
+            5: { name: "5차원 자동화", cost: 1e80 },
+            6: { name: "6차원 자동화", cost: 1e90 },
+            7: { name: "7차원 자동화", cost: 1e100 },
+            8: { name: "8차원 자동화", cost: 1e110 },
+            "tick": { name: "틱스피드 자동화", cost: 1e140 }
+        };
+
+        function initGame() {
+            gameState = {
+                antimatter: 10,
+                tickspeed: 1000,
+                tickspeedCost: 10,
+                tickspeedBought: 0,
+                dimBoosts: 0,
+                galaxies: 0,
+                dimensions: {},
+                autobuyers: {
+                    1: { unlocked: false, active: false },
+                    2: { unlocked: false, active: false },
+                    3: { unlocked: false, active: false },
+                    4: { unlocked: false, active: false },
+                    5: { unlocked: false, active: false },
+                    6: { unlocked: false, active: false },
+                    7: { unlocked: false, active: false },
+                    8: { unlocked: false, active: false },
+                    "tick": { unlocked: false, active: false }
+                }
+            };
+
+            for (let i = 1; i <= 8; i++) {
+                gameState.dimensions[i] = { amount: 0, bought: 0, cost: BASE_COSTS[i], multiplier: 1 };
+            }
+        }
+
+        function encodeDoubleBase64(obj) {
+            let jsonStr = JSON.stringify(obj);
+            let firstBase64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
+            let secondBase64 = btoa(firstBase64);
+            return secondBase64;
+        }
+
+        function decodeDoubleBase64(str) {
+            try {
+                let firstBase64 = atob(str.trim());
+                let jsonStr = decodeURIComponent(atob(firstBase64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                return JSON.parse(jsonStr);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function saveGame() {
+            let saveString = encodeDoubleBase64(gameState);
+            localStorage.setItem('AD_Hyper_Save', saveString);
+        }
+
+        function loadGame() {
+            let localData = localStorage.getItem('AD_Hyper_Save');
+            if (localData) {
+                let parsed = decodeDoubleBase64(localData);
+                if (parsed) {
+                    gameState = parsed;
+                    return true;
+                }
+            }
+            initGame();
+            return false;
+        }
+
+        function exportSaveText() {
+            let saveString = encodeDoubleBase64(gameState);
+            let box = document.getElementById('save-data-box');
+            box.value = saveString;
+            box.select();
+            document.execCommand('copy');
+            alert("이중 Base64 세이브 코드가 클립보드에 복사되었습니다!");
+        }
+
+        function importSaveText() {
+            let box = document.getElementById('save-data-box');
+            let text = box.value;
+            if (!text) {
+                alert("텍스트 상자에 세이브 코드를 먼저 붙여넣어 주세요.");
+                return;
+            }
+            let parsed = decodeDoubleBase64(text);
+            if (parsed) {
+                gameState = parsed;
+                saveGame();
+                renderAutobuyerDOM();
+                updateUI();
+                alert("세이브 데이터를 성공적으로 불러왔습니다!");
+                box.value = "";
+            } else {
+                alert("올바르지 않은 세이브 코드입니다. 코드를 다시 확인해 주세요.");
+            }
+        }
+
+        function hardResetGame() {
+            if (confirm("정말로 모든 진행 상황을 완전히 삭제하시겠습니까? 데이터가 초기화됩니다.")) {
+                localStorage.removeItem('AD_Hyper_Save');
+                initGame();
+                renderAutobuyerDOM();
+                updateUI();
+            }
+        }
+
+        function format(value) {
+            if (value >= INFINITY) return "Infinity";
+            if (value < 100000) return value.toFixed(1);
+            let exponent = Math.floor(Math.log10(value));
+            let mantissa = value / Math.pow(10, exponent);
+            return `${mantissa.toFixed(2)}e${exponent}`;
+        }
+
+        function getMaxUnlockedDim() {
+            return Math.min(4 + gameState.dimBoosts, 8);
+        }
+
+        function getBoostRequirement() {
+            let maxDim = getMaxUnlockedDim();
+            if (maxDim < 8) return { dim: maxDim, amount: 20 };
+            return { dim: 8, amount: 20 + Math.max(0, gameState.dimBoosts - 4) * 15 };
+        }
+
+        function getGalaxyRequirement() {
+            return 80 + gameState.galaxies * 60;
+        }
+
+        function getTickspeedMultiplier() {
+            return 1 / (1 + (0.125 + (gameState.galaxies * 0.02)));
+        }
+
+        function buyDimension(dimNum) {
+            if (dimNum > getMaxUnlockedDim()) return false;
+            
+            let dim = gameState.dimensions[dimNum];
+            if (gameState.antimatter >= dim.cost) {
+                gameState.antimatter -= dim.cost;
+                dim.amount += 1;
+                dim.bought += 1;
+                if (dim.bought % 10 === 0) {
+                    dim.cost *= COST_MULT_PER_10[dimNum];
+                    dim.multiplier *= 2;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        function buyTickspeed() {
+            if (gameState.antimatter >= gameState.tickspeedCost) {
+                gameState.antimatter -= gameState.tickspeedCost;
+                gameState.tickspeedBought += 1;
+                gameState.tickspeedCost *= 10;
+                gameState.tickspeed *= getTickspeedMultiplier();
+                return true;
+            }
+            return false;
+        }
+
+        function buyMaxAll() {
+            if (gameState.antimatter >= INFINITY) return;
+            let boughtAnything = true;
+            while (boughtAnything) {
+                boughtAnything = false;
+                if (buyTickspeed()) boughtAnything = true;
+                let maxDim = getMaxUnlockedDim();
+                for (let i = 1; i <= maxDim; i++) {
+                    if (buyDimension(i)) boughtAnything = true;
+                }
+            }
+            updateUI();
+        }
+
+        window.addEventListener('keydown', function(event) {
+            if (document.activeElement.tagName === 'TEXTAREA') return;
+            if (event.key === 'm' || event.key === 'M') buyMaxAll();
+        });
+
+        function doDimensionBoost() {
+            let req = getBoostRequirement();
+            if (gameState.dimensions[req.dim].amount >= req.amount) {
+                gameState.dimBoosts += 1;
+                let savedAutobuyers = gameState.autobuyers;
+                let savedGalaxies = gameState.galaxies;
+                let currentBoosts = gameState.dimBoosts;
+                
+                initGame();
+                gameState.dimBoosts = currentBoosts;
+                gameState.autobuyers = savedAutobuyers;
+                gameState.galaxies = savedGalaxies;
+                
+                gameState.antimatter = 10;
+                
+                for (let i = 1; i <= 8; i++) {
+                    if (gameState.dimBoosts >= i || gameState.dimBoosts >= 8) {
+                        gameState.dimensions[i].multiplier = Math.pow(2, gameState.dimBoosts - i + 1);
+                    }
+                }
+                renderAutobuyerDOM();
+                updateUI();
+            }
+        }
+
+        function doGalaxy() {
+            let reqAmount = getGalaxyRequirement();
+            if (getMaxUnlockedDim() === 8 && gameState.dimensions[8].amount >= reqAmount) {
+                gameState.galaxies += 1;
+                let savedAutobuyers = gameState.autobuyers;
+                let savedGalaxies = gameState.galaxies;
+                
+                initGame(); 
+                gameState.autobuyers = savedAutobuyers;
+                gameState.galaxies = savedGalaxies;
+                renderAutobuyerDOM();
+                updateUI();
+            }
+        }
+
+        function unlockAutobuyer(id) {
+            let def = AUTOBUYER_DEFS[id];
+            if (gameState.antimatter >= def.cost && !gameState.autobuyers[id].unlocked) {
+                gameState.antimatter -= def.cost;
+                gameState.autobuyers[id].unlocked = true;
+                renderAutobuyerDOM();
+                updateUI();
+            }
+        }
+
+        function toggleAutobuyer(id) {
+            if (gameState.autobuyers[id].unlocked) {
+                gameState.autobuyers[id].active = !gameState.autobuyers[id].active;
+                let btn = document.getElementById(`auto-btn-${id}`);
+                if (gameState.autobuyers[id].active) {
+                    btn.textContent = "ON"; btn.classList.add('active');
+                } else {
+                    btn.textContent = "OFF"; btn.classList.remove('active');
+                }
+            }
+        }
+
+        function renderAutobuyerDOM() {
+            let container = document.getElementById('autobuyer-zone');
+            if (!container) return;
+            container.innerHTML = "";
+            
+            Object.keys(AUTOBUYER_DEFS).forEach(key => {
+                let def = AUTOBUYER_DEFS[key];
+                let state = gameState.autobuyers[key];
+                let card = document.createElement('div');
+                card.className = `autobuyer-card ${state.unlocked ? '' : 'locked'}`;
+                
+                if (state.unlocked) {
+                    card.innerHTML = `
+                        <div><strong>${def.name}</strong></div>
+                        <div style="font-size:11px; color:#00ffcc; margin:5px 0;">작동 상태</div>
+                        <button id="auto-btn-${key}" class="toggle-btn ${state.active ? 'active' : ''}" onclick="toggleAutobuyer('${key}')">${state.active ? 'ON' : 'OFF'}</button>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div><strong>${def.name}</strong></div>
+                        <div style="font-size:11px; color:#aaa; margin:5px 0;">해금비용: ${format(def.cost)}</div>
+                        <button id="unlock-btn-${key}" class="unlock-btn" onclick="unlockAutobuyer('${key}')">해금하기</button>
+                    `;
+                }
+                container.appendChild(card);
+            });
+        }
+
+        setInterval(function() {
+            let baseTimeScale = (1000 / gameState.tickspeed) * 0.033;
+            let hyperTimeScale = baseTimeScale * 100; 
+
+            if (gameState.antimatter < INFINITY) {
+                if (gameState.autobuyers["tick"].unlocked && gameState.autobuyers["tick"].active) {
+                    while (buyTickspeed()) {}
+                }
+                for (let i = 1; i <= 8; i++) {
+                    if (gameState.autobuyers[i].unlocked && gameState.autobuyers[i].active) {
+                        while (buyDimension(i)) {}
+                    }
+                }
+            }
+
+            for (let i = 8; i > 1; i--) {
+                let parentDim = gameState.dimensions[i];
+                if (parentDim.amount > 0) {
+                    gameState.dimensions[i-1].amount += (parentDim.amount * parentDim.multiplier) * hyperTimeScale;
+                }
+            }
+
+            if (gameState.dimensions[1].amount > 0) {
+                let production = gameState.dimensions[1].amount * gameState.dimensions[1].multiplier;
+                gameState.antimatter += production * hyperTimeScale;
+            }
+
+            if (gameState.antimatter >= INFINITY) {
+                gameState.antimatter = INFINITY;
+                document.getElementById('infinity-screen').style.display = 'flex';
+            }
+
+            updateUI();
+        }, 33);
+
+        setInterval(function() {
+            if(gameState.antimatter < INFINITY) {
+                saveGame();
+            }
+        }, 10000);
+
+        function updateUI() {
+            if (!document.getElementById('antimatter')) return;
+            document.getElementById('antimatter').textContent = format(gameState.antimatter);
+            document.getElementById('tick-display').textContent = (gameState.tickspeed / 1000).toFixed(6);
+            document.getElementById('tick-mult-text').textContent = `×${(1 / getTickspeedMultiplier()).toFixed(3)}`;
+
+            let boostReq = getBoostRequirement();
+            document.getElementById('boost-req-text').textContent = `차원 가속 (${gameState.dimBoosts}회) -> 요구: ${boostReq.dim}D ${boostReq.amount}개`;
+            
+            if (gameState.dimensions[boostReq.dim]) {
+                document.getElementById('btn-boost').disabled = gameState.dimensions[boostReq.dim].amount < boostReq.amount;
+            }
+
+            let galaxyReq = getGalaxyRequirement();
+            document.getElementById('galaxy-req-text').textContent = `반물질 은하 (${gameState.galaxies}개) -> 요구: 8D ${galaxyReq}개`;
+            document.getElementById('btn-galaxy').disabled = (getMaxUnlockedDim() < 8 || gameState.dimensions[8].amount < galaxyReq);
+
+            let tickBtn = document.getElementById('tick-btn');
+            tickBtn.textContent = `비용: ${format(gameState.tickspeedCost)}`;
+            tickBtn.disabled = gameState.antimatter < gameState.tickspeedCost;
+
+            let maxUnlocked = getMaxUnlockedDim();
+            for (let i = 1; i <= 8; i++) {
+                let row = document.getElementById(`row-dim${i}`);
+                let dim = gameState.dimensions[i];
+                
+                document.getElementById(`dim${i}-amount`).textContent = format(dim.amount);
+                document.getElementById(`dim${i}-bought`).textContent = dim.bought;
+                document.getElementById(`dim${i}-mult`).textContent = format(dim.multiplier);
+                
+                let btn = document.getElementById(`dim${i}-btn`);
+                
+                if (i <= maxUnlocked) {
+                    row.classList.remove('locked-row');
+                    btn.textContent = `비용: ${format(dim.cost)}`;
+                    btn.disabled = gameState.antimatter < dim.cost;
+                } else {
+                    row.classList.add('locked-row');
+                    btn.textContent = `비용: ${format(dim.cost)} (잠김)`;
+                    btn.disabled = true;
+                }
+            }
+
+            Object.keys(AUTOBUYER_DEFS).forEach(key => {
+                let def = AUTOBUYER_DEFS[key];
+                let state = gameState.autobuyers[key];
+                if (!state.unlocked) {
+                    let btn = document.getElementById('unlock-btn-' + key);
+                    if (btn) btn.disabled = gameState.antimatter < def.cost;
+                }
+            });
+        }
+
+        loadGame();
+        renderAutobuyerDOM();
+        updateUI();
